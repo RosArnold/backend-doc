@@ -22,6 +22,16 @@ exports.getDocuments = async (req, res) => {
   }
 };
 
+exports.searchDocuments = async (req, res) => {
+  try {
+    const documents = await Document.find({ name: req.params.keyword });
+    res.json(documents);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
 exports.uploadDocument = [
   upload.single('file'),
   async (req, res) => {

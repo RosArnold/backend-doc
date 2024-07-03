@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   getDocuments,
+  searchDocuments,
   uploadDocument,
   getDocument,
   updateDocument,
@@ -12,6 +13,7 @@ const authMiddleware = require('../middlewares/auth');
 const router = express.Router();
 
 router.get('/', authMiddleware, getDocuments);
+router.get('/:keyword', authMiddleware, searchDocuments);
 router.post('/', authMiddleware, uploadDocument);
 router.get('/:id', authMiddleware, getDocument);
 router.patch('/:id', authMiddleware, updateDocument);
