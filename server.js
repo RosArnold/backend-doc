@@ -1,9 +1,10 @@
-const express = require('express');
-const connectDB = require('./config/db');
-const logger = require('morgan');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
+const express = require("express");
+const connectDB = require("./config/db");
+const logger = require("morgan");
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
+const dotenv = require("dotenv");
+const cors = require("cors");
 
 dotenv.config();
 
@@ -13,16 +14,17 @@ const app = express();
 connectDB();
 
 // Init Middleware
-app.use(logger('dev'));
-app.use(bodyParser.json({ limit: '300kb' }));
+app.use(cors());
+app.use(logger("dev"));
+app.use(bodyParser.json({ limit: "300kb" }));
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Define Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/documents', require('./routes/document'));
-app.use('/api/folders', require('./routes/folder'));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/documents", require("./routes/document"));
+app.use("/api/folders", require("./routes/folder"));
 
 const PORT = process.env.PORT || 5000;
 
