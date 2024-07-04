@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const FolderSchema = new mongoose.Schema({
@@ -8,12 +8,12 @@ const FolderSchema = new mongoose.Schema({
   },
   owner: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   parentFolder: {
     type: Schema.Types.ObjectId,
-    ref: 'Folder',
+    ref: "Folder",
   },
   createdAt: {
     type: Date,
@@ -21,6 +21,6 @@ const FolderSchema = new mongoose.Schema({
   },
 });
 
-const Folder = mongoose.model('folder', FolderSchema);
+const Folder = mongoose.model("folder", FolderSchema);
 
 module.exports = Folder;

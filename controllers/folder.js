@@ -1,5 +1,5 @@
-const Folder = require('../models/Folder');
-const Document = require('../models/Document');
+const Folder = require("../models/Folder");
+const Document = require("../models/Document");
 
 exports.getFolders = async (req, res) => {
   try {
@@ -7,7 +7,7 @@ exports.getFolders = async (req, res) => {
     res.json(folders);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -25,25 +25,27 @@ exports.createFolder = async (req, res) => {
     res.json(folder);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
 exports.getFolder = async (req, res) => {
   try {
-    const folder = await Folder.findById(req.params.id);
+    const folder = await Folder.find({
+      parentFolder: req.params.id,
+    });
     if (!folder) {
-      return res.status(404).json({ msg: 'Folder not found' });
+      return res.status(404).json({ msg: "Folder not found" });
     }
 
     if (folder.owner.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User not authorized' });
+      return res.status(401).json({ msg: "User not authorized" });
     }
 
     res.json(folder);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -51,11 +53,11 @@ exports.updateFolder = async (req, res) => {
   try {
     const folder = await Folder.findById(req.params.id);
     if (!folder) {
-      return res.status(404).json({ msg: 'Folder not found' });
+      return res.status(404).json({ msg: "Folder not found" });
     }
 
     if (folder.owner.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User not authorized' });
+      return res.status(401).json({ msg: "User not authorized" });
     }
 
     const { name, parentFolder } = req.body;
@@ -63,10 +65,10 @@ exports.updateFolder = async (req, res) => {
     folder.parentFolder = parentFolder;
 
     await folder.save();
-    res.json({ message: 'Folder updated' });
+    res.json({ message: "Folder updated" });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -74,19 +76,19 @@ exports.deleteFolder = async (req, res) => {
   try {
     const folder = await Folder.findById(req.params.id);
     if (!folder) {
-      return res.status(404).json({ msg: 'Folder not found' });
+      return res.status(404).json({ msg: "Folder not found" });
     }
 
     if (folder.owner.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User not authorized' });
+      return res.status(401).json({ msg: "User not authorized" });
     }
 
     await Document.findByIdAndDelete(folder._id);
 
     await Folder.findByIdAndDelete(req.params.id);
-    res.json({ msg: 'Folder removed' });
+    res.json({ msg: "Folder removed" });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
