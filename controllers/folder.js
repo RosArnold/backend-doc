@@ -3,8 +3,17 @@ const Document = require("../models/Document");
 
 exports.getFolders = async (req, res) => {
   try {
-    const folders = await Folder.find({ owner: req.user.id });
-    res.json(folders);
+    const folders = await Folder.find({
+      owner: req.user.id,
+      parentFolder: undefined,
+    });
+
+    const documents = await Document.findOne({
+      owner: req.user.id,
+      folder: undefined,
+    });
+
+    res.json({ folders: folders, documents: documents });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
@@ -42,7 +51,11 @@ exports.getFolder = async (req, res) => {
       return res.status(401).json({ msg: "User not authorized" });
     }
 
-    res.json(folder);
+    const folders = await Folder.find({ parentFolder: folder._id });
+
+    const documents = await Document.find({ folder: folder._id });
+
+    res.json({ foler: folder, folders: folders, documents: documents });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");

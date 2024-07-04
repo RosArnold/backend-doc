@@ -32,22 +32,23 @@ exports.searchDocuments = async (req, res) => {
   }
 };
 
-exports.uploadDocument = [
+exports.uploadDocuments = [
   upload.array("files"),
   async (req, res) => {
-    const { originalname: name, path: filePath } = req.file;
+    console.log(req.body);
     const { folder } = req.body;
 
     try {
-      const document = new Document({
-        name,
-        path: filePath,
+      const documents = req.files.map((file) => ({
+        name: file.originalname,
+        path: file.path,
         owner: req.user.id,
         folder,
-      });
+      }));
 
-      await document.save();
-      res.json(document);
+      const savedDocuments = await Document.insertMany(documents);
+
+      res.json(savedDocuments);
     } catch (err) {
       console.error(err.message);
       res.status(500).send("Server error");
@@ -67,7 +68,7 @@ exports.getDocument = async (req, res) => {
     }
 
     res.json(document);
-  } catch {
+  } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
@@ -93,7 +94,7 @@ exports.updateDocument = async (req, res) => {
 
     await document.save();
     res.json({ msg: "Document updated" });
-  } catch {
+  } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
@@ -110,12 +111,43 @@ exports.shareDocument = async (req, res) => {
       return res.status(401).json({ msg: "User not authorized" });
     }
 
-    const { userId } = req.body;
-    document.sharedWith = userId;
+    document.sharedWith = true;
 
     await document.save();
     res.json({ message: "Document shared" });
-  } catch {
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.getSharedDocuments = async (req, res) => {
+  try {
+    const documents = await Document.find({ sharedWith: true });
+    if (!documents) {
+      return res.status(404).json({ msg: "Document not found" });
+    }
+
+    res.json(documents);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.downloadDocument = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+    if (!document) {
+      return res.status(404).json({ msg: "Document not found" });
+    }
+
+    if (!document.sharedWith) {
+      return res.status(403).json({ msg: "Document not shared" });
+    }
+
+    res.json(document);
+  } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
