@@ -85,6 +85,23 @@ exports.updateFolder = async (req, res) => {
   }
 };
 
+exports.shareFolder = async (req, res) => {
+  try {
+    const folder = await Folder.findById(req.params.id);
+
+    const { email } = req.body;
+    const user = await User.findOne({ email: email });
+
+    folder.sharedWith.push(user._id);
+    await folder.save();
+
+    res.json('Folder shared');
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+}
+
 exports.deleteFolder = async (req, res) => {
   try {
     const folder = await Folder.findById(req.params.id);

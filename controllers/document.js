@@ -103,15 +103,16 @@ exports.shareDocument = async (req, res) => {
   }
 };
 
-exports.getSharedDocuments = async (req, res) => {
+exports.getSharedDocumentsAndFolders = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log(userId);
     const sharedDocuments = await Document.find({
       sharedWith: { $in: [userId] },
     });
 
-    res.json(sharedDocuments);
+    const sharedFolders = await Folder.find({ sharedWith: { $in: [userId] } });
+
+    res.json({ documents: sharedDocuments, folders: sharedFolders });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

@@ -6,7 +6,7 @@ const {
   getDocument,
   updateDocument,
   shareDocument,
-  getSharedDocuments,
+  getSharedDocumentsAndFolders,
   downloadDocument,
   deleteDocument,
 } = require('../controllers/document');
@@ -19,8 +19,8 @@ router.get("/:keyword/search", authMiddleware, searchDocuments);
 router.post("/", authMiddleware, uploadDocuments);
 router.get("/:id", authMiddleware, getDocument);
 router.put("/:id", authMiddleware, updateDocument);
-router.post("/:id/shared", authMiddleware, shareDocument);
-router.get("/:id/shared", authMiddleware, getSharedDocuments);
+router.post("/:id/share", authMiddleware, shareDocument);
+router.get("/shared", authMiddleware, getSharedDocumentsAndFolders);
 router.get("/:id/download", authMiddleware, downloadDocument);
 router.delete("/:id", authMiddleware, deleteDocument);
 

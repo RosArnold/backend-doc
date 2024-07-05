@@ -8,13 +8,19 @@ const FolderSchema = new mongoose.Schema({
   },
   owner: {
     type: Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
   },
   parentFolder: {
     type: Schema.Types.ObjectId,
-    ref: "Folder",
+    ref: 'Folder',
   },
+  sharedWith: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
