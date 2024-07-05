@@ -8,7 +8,7 @@ exports.getFolders = async (req, res) => {
       parentFolder: undefined,
     });
 
-    const documents = await Document.findOne({
+    const documents = await Document.find({
       owner: req.user.id,
       folder: undefined,
     });
