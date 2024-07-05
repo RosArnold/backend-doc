@@ -1,4 +1,6 @@
 const Document = require('../models/Document');
+const User = require('../models/User');
+const Folder = require('../models/Folder');
 const multer = require('multer');
 const path = require('path');
 
@@ -26,7 +28,9 @@ exports.searchDocuments = async (req, res) => {
   try {
     const keyword = new RegExp(req.params.keyword, 'i');
     const documents = await Document.find({ name: keyword });
-    res.json(documents);
+    const folders = await Folder.find({ name: keyword });
+
+    res.json({ folders: folders, documents: documents });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -87,9 +91,9 @@ exports.shareDocument = async (req, res) => {
     const document = await Document.findById(req.params.id);
 
     const { email } = req.body;
-    const userId = await User.findOne({ email: email });
+    const user = await User.findOne({ email: email });
 
-    document.sharedWith.push(userId);
+    document.sharedWith.push(user._id);
     await document.save();
 
     res.json('Document shared');

@@ -1,86 +1,79 @@
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
 const User = require('./models/User');
 const Document = require('./models/Document');
 const Folder = require('./models/Folder');
-const dotenv = require('dotenv');
 
-dotenv.config();
+require('dotenv').config();
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected...'))
-  .catch((err) => console.log(err));
+mongoose.connect(process.env.MONGO_URI);
 
-const seedDatabase = async () => {
-  try {
-    // Clear existing data
-    await User.deleteMany({});
-    await Document.deleteMany({});
-    await Folder.deleteMany({});
+async function seedDatabase() {
+  // Clear existing data
+  await Promise.all([
+    User.deleteMany({}),
+    Document.deleteMany({}),
+    Folder.deleteMany({}),
+  ]);
 
-    // Create users
-    const users = await User.insertMany([
-      { name: 'User 1', email: 'user1@example.com', password: 'password1' },
-      { name: 'User 2', email: 'user2@example.com', password: 'password2' },
-      { name: 'User 3', email: 'user3@example.com', password: 'password3' },
-      { name: 'User 4', email: 'user4@example.com', password: 'password4' },
-      { name: 'User 5', email: 'user5@example.com', password: 'password5' },
-    ]);
+  // Create users
+  const users = [];
+  for (let i = 1; i <= 5; i++) {
+    const userId = new mongoose.Types.ObjectId();
+    const name = `User${i}`;
+    const email = `user${i}@example.com`;
+    const password = `password${i}`;
 
-    // Create folders
-    const folders = await Folder.insertMany([
-      { name: 'Folder 1', owner: users[0]._id },
-      { name: 'Folder 2', owner: users[1]._id },
-      { name: 'Folder 3', owner: users[2]._id },
-      { name: 'Folder 4', owner: users[3]._id },
-      { name: 'Folder 5', owner: users[4]._id },
-    ]);
-
-    // Create documents
-    await Document.insertMany([
-      {
-        name: 'Document 1',
-        path: 'upload/doc1.txt',
-        owner: users[0]._id,
-        sharedWith: [users[1]._id, users[2]._id],
-        folder: folders[0]._id,
-      },
-      {
-        name: 'Document 2',
-        path: 'upload/doc2.txt',
-        owner: users[1]._id,
-        sharedWith: [users[0]._id, users[3]._id],
-        folder: folders[1]._id,
-      },
-      {
-        name: 'Document 3',
-        path: 'upload/doc3.txt',
-        owner: users[2]._id,
-        sharedWith: [users[1]._id, users[4]._id],
-        folder: folders[2]._id,
-      },
-      {
-        name: 'Document 4',
-        path: 'upload/doc4.txt',
-        owner: users[3]._id,
-        sharedWith: [users[2]._id, users[0]._id],
-        folder: folders[3]._id,
-      },
-      {
-        name: 'Document 5',
-        path: 'upload/doc5.txt',
-        owner: users[4]._id,
-        sharedWith: [users[3]._id, users[1]._id],
-        folder: folders[4]._id,
-      },
-    ]);
-
-    console.log('Database seeded!');
-    mongoose.connection.close();
-  } catch (err) {
-    console.error(err);
-    mongoose.connection.close();
+    users.push({
+      _id: userId,
+      name,
+      email,
+      password: password,
+    });
   }
-};
+
+  await User.create(users);
+
+  // Create folders
+  const folders = [];
+  for (let i = 1; i <= 5; i++) {
+    const folderId = new mongoose.Types.ObjectId();
+    const name = `Folder ${i}`;
+    const owner = users[i - 1]._id; // Assign folder to respective user
+
+    folders.push({
+      _id: folderId,
+      name,
+      owner,
+    });
+  }
+
+  await Folder.create(folders);
+
+  // Create documents
+  const documents = [];
+  for (let i = 1; i <= 10; i++) {
+    const documentId = new mongoose.Types.ObjectId();
+    const name = `Document ${i}`;
+    const path = `upload/file_${i}.pdf`;
+    const owner = users[(i - 1) % 5]._id; // Assign owner in round-robin manner
+    const folder = folders[(i - 1) % 5]._id; // Assign folder in round-robin manner
+
+    documents.push({
+      _id: documentId,
+      name,
+      path,
+      owner,
+      folder,
+    });
+  }
+
+  await Document.create(documents);
+
+  console.log('Database seeded successfully!');
+  mongoose.connection.close();
+}
 
 seedDatabase();
