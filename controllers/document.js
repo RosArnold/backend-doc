@@ -1,10 +1,10 @@
-const Document = require("../models/Document");
-const multer = require("multer");
-const path = require("path");
+const Document = require('../models/Document');
+const multer = require('multer');
+const path = require('path');
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
-  destination: "./uploads/",
+  destination: './uploads/',
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   },
@@ -18,24 +18,24 @@ exports.getDocuments = async (req, res) => {
     res.json(documents);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
 exports.searchDocuments = async (req, res) => {
   try {
-    const documents = await Document.find({ name: req.params.keyword });
+    const keyword = new RegExp(req.params.keyword, 'i');
+    const documents = await Document.find({ name: keyword });
     res.json(documents);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
 exports.uploadDocuments = [
-  upload.array("files"),
+  upload.array('files'),
   async (req, res) => {
-    console.log(req.body);
     const { folder } = req.body;
 
     try {
@@ -51,7 +51,7 @@ exports.uploadDocuments = [
       res.json(savedDocuments);
     } catch (err) {
       console.error(err.message);
-      res.status(500).send("Server error");
+      res.status(500).send('Server error');
     }
   },
 ];
@@ -59,115 +59,78 @@ exports.uploadDocuments = [
 exports.getDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ msg: "Document not found" });
-    }
-
-    if (document.owner.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "User not authorized" });
-    }
-
     res.json(document);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
 exports.updateDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ msg: "Document not found" });
-    }
-
-    if (document.owner.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "User not authorized" });
-    }
-
     const { name, folder } = req.body;
-
-    console.log(name);
 
     document.name = name;
     document.folder = folder;
 
     await document.save();
-    res.json({ msg: "Document updated" });
+    res.json({ msg: 'Document updated' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
 exports.shareDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ msg: "Document not found" });
-    }
 
-    if (document.owner.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "User not authorized" });
-    }
+    const { email } = req.body;
+    const userId = await User.findOne({ email: email });
 
-    document.sharedWith = true;
-
+    document.sharedWith.push(userId);
     await document.save();
-    res.json({ message: "Document shared" });
+
+    res.json('Document shared');
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
 exports.getSharedDocuments = async (req, res) => {
   try {
-    const documents = await Document.find({ sharedWith: true });
-    if (!documents) {
-      return res.status(404).json({ msg: "Document not found" });
-    }
+    const userId = req.user.id;
+    console.log(userId);
+    const sharedDocuments = await Document.find({
+      sharedWith: { $in: [userId] },
+    });
 
-    res.json(documents);
+    res.json(sharedDocuments);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
 exports.downloadDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ msg: "Document not found" });
-    }
-
-    if (!document.sharedWith) {
-      return res.status(403).json({ msg: "Document not shared" });
-    }
 
     res.json(document);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };
 
 exports.deleteDocument = async (req, res) => {
   try {
-    const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ msg: "Document not found" });
-    }
-
-    if (document.owner.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "User not authorized" });
-    }
-
     await Document.findByIdAndDelete(req.params.id);
-    res.json({ msg: "Document removed" });
+    res.json({ msg: 'Document removed' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 };

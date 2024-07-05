@@ -7,18 +7,18 @@ const {
   updateDocument,
   shareDocument,
   getSharedDocuments,
-  deleteDocument,
   downloadDocument,
-} = require("../controllers/document");
+  deleteDocument,
+} = require('../controllers/document');
 const authMiddleware = require("../middlewares/auth");
 
 const router = express.Router();
 
 router.get("/", authMiddleware, getDocuments);
-router.get("/:keyword", authMiddleware, searchDocuments);
+router.get("/:keyword/search", authMiddleware, searchDocuments);
 router.post("/", authMiddleware, uploadDocuments);
 router.get("/:id", authMiddleware, getDocument);
-router.patch("/:id", authMiddleware, updateDocument);
+router.put("/:id", authMiddleware, updateDocument);
 router.post("/:id/shared", authMiddleware, shareDocument);
 router.get("/:id/shared", authMiddleware, getSharedDocuments);
 router.get("/:id/download", authMiddleware, downloadDocument);
